@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import * as api from "@client/src/api";
 import { buildSectionPreview, MINUTES_PREVIEW_FILENAME } from "@shared/minutes";
 import type {
@@ -16,8 +17,18 @@ import PreviewSection from "./PreviewSection";
 import { useJsonValidation } from "./useJsonValidation";
 import type { JsonValidationResult } from "./useJsonValidation";
 
+/** The assistant page's 「帶到工作台」 hands its JSON over via router state */
+interface WorkbenchLocationState {
+  jsonText?: string;
+}
+
 const MeetingMinutesWorkbench = () => {
-  const [jsonText, setJsonText] = useState<string>("");
+  const location = useLocation();
+  const [jsonText, setJsonText] = useState<string>((): string => {
+    const state: WorkbenchLocationState | null =
+      location.state as WorkbenchLocationState | null;
+    return typeof state?.jsonText === "string" ? state.jsonText : "";
+  });
   const [generating, setGenerating] = useState<boolean>(false);
   const [actionError, setActionError] = useState<string>("");
   const [latestRecord, setLatestRecord] = useState<MinutesRecord | null>(null);

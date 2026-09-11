@@ -21,7 +21,7 @@ This public version is a standalone static SPA: **no company, department or pers
 | Word generation | **Real, in-browser** | The original Node builder (jszip + xmldom) ported verbatim to ESM; the template is fetched from `/template.docx` |
 | Template content | Withheld | Table skeleton and form labels kept; names, department, dates, venue, body text, statistics rows, logo and document metadata removed |
 | Download + 5-record history | **Real** | Kept in page memory, like the production in-process store |
-| AI assistant | Visual replica | Reproduces the embedded Aily panel; any message gets a "Not available in public demo" notice, no live answers |
+| AI assistant | Visual replica | Reproduces the embedded Aily panel with one static example exchange (upload → steps → summary → JSON, computed from the sample); any live message or upload gets a "Not available in public demo" notice |
 
 ## Tech stack
 

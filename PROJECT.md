@@ -99,7 +99,7 @@ Public portfolio demo of an internal meeting-minutes generator the owner built o
 2. **Withhold, don't substitute.** The template keeps its XML structure (the builder depends on donor-row indexes) but every value — department name, attendee names, date/time/venue, distribution list, body text, statistics rows, chairman signature — is a full-width underscore bar (`＿＿＿`). Do not "improve" the template by filling anything in.
 3. **What may show:** the seven fixed section titles, form labels (日期/時間/地點/出席/行動/記錄), the statistics-table header row and its formula note, the marker legend (#管方代表 *員方代表 ^網上參會), the year label `2026`, the default empty-section sentences.
 4. **The sample JSON is written from scratch** (`client/src/data/sample-minutes.ts`): generic safety-committee wording, no real incident, place or number. Do not paste content from the original template into it.
-5. **AI page is a replica.** `AilyAssistantPage` reproduces the panel's form; every message gets `NOT_AVAILABLE_LABEL`. No responder, no canned answers.
+5. **AI page is a replica.** `AilyAssistantPage` reproduces the production panel's one exchange — transcript upload → progress steps → per-section summary → JSON — rendered from the sample JSON (counts via `buildSectionPreview`, never hand-typed) and labelled "靜態示例，非即時生成". Any live message or upload gets `NOT_AVAILABLE_LABEL`. No responder, no canned answers to input.
 6. **Filename constant** is `安全委員會_2026_第X次_會議記錄.docx` in both `shared/minutes.ts` and `client/src/lib/build-minutes.js`; keep them in sync and never reintroduce the original department abbreviation.
 7. **Never reintroduce** the employer's short name, department names, the Aily appKey, or the original `template.docx`. Run the leak scan below before every commit. The wordlist lives outside the repo on purpose.
 
@@ -118,9 +118,10 @@ client/src/
   api/minutes/index.ts    client-side replacement for the NestJS service: fetches /template.docx
                           once, dynamic-imports the builder, keeps 5 records in memory
   data/sample-minutes.ts  the "載入示例 JSON" payload (generic, hand-written)
-  data/ai.ts              assistant copy (welcome, chips, notice)
+  data/ai.ts              assistant copy (panel title, agent steps, result headings, notice)
   components/Layout.tsx   two-tab nav + DemoBanner
-  pages/AilyAssistant     replica of the embedded Aily chat panel
+  pages/AilyAssistant     replica of the embedded Aily panel; 「帶到工作台」 passes the sample
+                          JSON to /workbench via router state
   pages/MeetingMinutesWorkbench
     MeetingMinutesWorkbench.tsx  page state; unchanged from production apart from imports
     JsonInputSection.tsx         textarea + live validation + sample button
