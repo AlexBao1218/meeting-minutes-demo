@@ -2,18 +2,20 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "re
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
-  Bot,
+  ArrowUp,
   Check,
   ChevronDown,
   ChevronUp,
   Copy,
-  FileText,
   Info,
   Plus,
   RefreshCw,
-  SendHorizontal,
+  Sparkles,
+  ThumbsDown,
+  ThumbsUp,
 } from "lucide-react";
 import * as api from "@client/src/api";
+import { FileWikiWordColorfulIcon } from "@client/src/components/ui/icons/file-wiki-word-colorful-icon";
 import { buildSectionPreview } from "@shared/minutes";
 import type {
   MinutesFixedSection,
@@ -40,7 +42,8 @@ import {
  * progress steps → per-section summary → JSON — built entirely from the
  * demo's hand-written sample JSON (counts come from `buildSectionPreview`,
  * the same function the workbench uses). Nothing is generated: any live
- * message or upload gets an explicit "not available in public demo" notice.
+ * message, upload, regenerate or feedback click gets an explicit
+ * "not available in public demo" notice.
  */
 
 /** Pause before the notice card appears, so the exchange reads as a reply */
@@ -66,11 +69,123 @@ function summaryLine(row: MinutesSectionPreviewRow): string {
   return `${row.title}：${row.itemCount} 項${suffix}`;
 }
 
+/** Copy text; falls back to a hidden textarea where the async clipboard API is unavailable */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const area: HTMLTextAreaElement = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.select();
+      const ok: boolean = document.execCommand("copy");
+      area.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
+// ---- JSON syntax colouring (keys / strings / numbers / literals) ----
+type Token = { kind: "key" | "string" | "number" | "literal" | "plain"; text: string };
+const TOKEN_RE = /("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?)|\b(true|false|null)\b/gu;
+
+function tokenize(line: string): Token[] {
+  const tokens: Token[] = [];
+  let last = 0;
+  for (const match of line.matchAll(TOKEN_RE)) {
+    const index: number = match.index ?? 0;
+    if (index > last) tokens.push({ kind: "plain", text: line.slice(last, index) });
+    if (match[1] !== undefined) {
+      tokens.push({ kind: match[2] ? "key" : "string", text: match[1] });
+      if (match[2]) tokens.push({ kind: "plain", text: match[2] });
+    } else if (match[3] !== undefined) {
+      tokens.push({ kind: "number", text: match[3] });
+    } else if (match[4] !== undefined) {
+      tokens.push({ kind: "literal", text: match[4] });
+    }
+    last = index + match[0].length;
+  }
+  if (last < line.length) tokens.push({ kind: "plain", text: line.slice(last) });
+  return tokens;
+}
+
+const TOKEN_CLASS: Record<Token["kind"], string> = {
+  key: "text-[hsl(280_45%_40%)]",
+  string: "text-[hsl(152_45%_32%)]",
+  number: "text-[hsl(215_60%_40%)]",
+  literal: "text-[hsl(215_60%_40%)]",
+  plain: "text-foreground",
+};
+
+const SAMPLE_TOKENS: Token[][] = SAMPLE_LINES.map(tokenize);
+
+function JsonBlock() {
+  return (
+    <div className="overflow-hidden rounded-sm border border-border bg-muted/40">
+      <div className="max-h-72 overflow-auto">
+        <pre className="min-w-max px-3 py-2.5 font-mono text-xs leading-5">
+          {SAMPLE_TOKENS.map((tokens: Token[], index: number) => (
+            <span key={index} className="flex gap-4">
+              <span className="w-6 shrink-0 select-none text-right text-muted-foreground/60">
+                {index + 1}
+              </span>
+              <span>
+                {tokens.map((token: Token, tokenIndex: number) => (
+                  <span key={tokenIndex} className={TOKEN_CLASS[token.kind]}>
+                    {token.text}
+                  </span>
+                ))}
+              </span>
+            </span>
+          ))}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+function IconButton({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className="inline-flex size-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+    >
+      {children}
+    </button>
+  );
+}
+
+function AgentAvatar() {
+  return (
+    <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-warning text-warning-foreground">
+      <Sparkles className="size-3.5" aria-hidden="true" />
+    </div>
+  );
+}
+
 function UploadBubble({ name }: { name: string }) {
   return (
     <div className="flex justify-end">
-      <div className="flex max-w-[85%] items-center gap-3 rounded-sm border border-border bg-muted px-3 py-2.5">
-        <FileText className="size-5 shrink-0 text-primary" aria-hidden="true" />
+      <div className="flex max-w-[85%] items-center gap-2.5 rounded-sm bg-muted px-3 py-2.5">
+        <FileWikiWordColorfulIcon className="size-6 shrink-0" aria-hidden="true" />
         <div className="min-w-0">
           <p className="truncate text-sm text-foreground">{name}</p>
           <p className="text-[11px] uppercase tracking-wide text-muted-foreground">docx</p>
@@ -82,20 +197,23 @@ function UploadBubble({ name }: { name: string }) {
 
 function NoticeCard() {
   return (
-    <div className="max-w-[92%] rounded-sm border border-border bg-background px-4 py-3 sm:max-w-[80%]">
-      <div className="flex items-center gap-2">
-        <Info className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        <p className="text-sm font-medium text-foreground">{NOT_AVAILABLE_LABEL}</p>
+    <div className="flex gap-3">
+      <AgentAvatar />
+      <div className="max-w-[92%] rounded-sm border border-border bg-background px-4 py-3 sm:max-w-[80%]">
+        <div className="flex items-center gap-2">
+          <Info className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <p className="text-sm font-medium text-foreground">{NOT_AVAILABLE_LABEL}</p>
+        </div>
+        <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{NOTICE_TEXT}</p>
+        <a
+          href={WRITEUP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-block text-sm font-medium text-primary underline-offset-4 hover:underline"
+        >
+          How it worked →
+        </a>
       </div>
-      <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{NOTICE_TEXT}</p>
-      <a
-        href={WRITEUP_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-2 inline-block text-sm font-medium text-primary underline-offset-4 hover:underline"
-      >
-        How it worked →
-      </a>
     </div>
   );
 }
@@ -103,9 +221,11 @@ function NoticeCard() {
 function ExampleReply({
   rows,
   onOpenWorkbench,
+  onUnavailable,
 }: {
   rows: MinutesSectionPreviewRow[];
   onOpenWorkbench: () => void;
+  onUnavailable: () => void;
 }) {
   const [stepsOpen, setStepsOpen] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
@@ -119,21 +239,15 @@ function ExampleReply({
   );
 
   const copyJson = async (): Promise<void> => {
-    try {
-      await navigator.clipboard.writeText(SAMPLE_MINUTES_JSON);
-      setCopied(true);
-      if (copiedTimer.current !== null) window.clearTimeout(copiedTimer.current);
-      copiedTimer.current = window.setTimeout((): void => setCopied(false), COPIED_RESET_MS);
-    } catch {
-      // clipboard blocked — the user can still select the text
-    }
+    if (!(await copyText(SAMPLE_MINUTES_JSON))) return;
+    setCopied(true);
+    if (copiedTimer.current !== null) window.clearTimeout(copiedTimer.current);
+    copiedTimer.current = window.setTimeout((): void => setCopied(false), COPIED_RESET_MS);
   };
 
   return (
     <div className="flex gap-3">
-      <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <Bot className="size-4" aria-hidden="true" />
-      </div>
+      <AgentAvatar />
       <div className="min-w-0 flex-1 space-y-3">
         {/* Progress steps, collapsed like the production panel */}
         <div>
@@ -143,7 +257,7 @@ function ExampleReply({
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
             aria-expanded={stepsOpen}
           >
-            <span aria-hidden="true">✧</span>
+            <Sparkles className="size-3.5" aria-hidden="true" />
             已生成結果
             {stepsOpen ? (
               <ChevronUp className="size-3.5" aria-hidden="true" />
@@ -177,38 +291,26 @@ function ExampleReply({
         </ol>
         <p className="text-sm leading-6 text-foreground">{RESULT_FOOTER}</p>
 
-        {/* JSON block with line numbers, as the production panel rendered it */}
-        <div className="overflow-hidden rounded-sm border border-border bg-muted/40">
-          <div className="max-h-72 overflow-auto">
-            <pre className="min-w-max px-3 py-2.5 font-mono text-xs leading-5">
-              {SAMPLE_LINES.map((line: string, index: number) => (
-                <div key={index} className="flex gap-4">
-                  <span className="w-6 shrink-0 select-none text-right text-muted-foreground/60">
-                    {index + 1}
-                  </span>
-                  <span className="text-foreground">{line}</span>
-                </div>
-              ))}
-            </pre>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={(): void => void copyJson()}
-            className="inline-flex items-center gap-1.5 rounded-sm border border-border px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-muted"
-          >
-            {copied ? (
-              <Check className="size-3.5 text-success" aria-hidden="true" />
-            ) : (
-              <Copy className="size-3.5" aria-hidden="true" />
-            )}
-            {copied ? "已複製" : "複製 JSON"}
-          </button>
+        <JsonBlock />
+
+        {/* Action row: regenerate / copy / feedback, as in the production panel */}
+        <div className="flex flex-wrap items-center gap-1">
+          <IconButton label="重新生成" onClick={onUnavailable}>
+            <RefreshCw className="size-4" />
+          </IconButton>
+          <IconButton label={copied ? "已複製" : "複製"} onClick={(): void => void copyJson()}>
+            {copied ? <Check className="size-4 text-success" /> : <Copy className="size-4" />}
+          </IconButton>
+          <IconButton label="有幫助" onClick={onUnavailable}>
+            <ThumbsUp className="size-4" />
+          </IconButton>
+          <IconButton label="沒有幫助" onClick={onUnavailable}>
+            <ThumbsDown className="size-4" />
+          </IconButton>
           <button
             type="button"
             onClick={onOpenWorkbench}
-            className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-2.5 py-1.5 text-xs text-primary-foreground transition-colors hover:bg-primary/90"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-sm bg-primary px-2.5 py-1.5 text-xs text-primary-foreground transition-colors hover:bg-primary/90"
           >
             帶到工作台
             <ArrowRight className="size-3.5" aria-hidden="true" />
@@ -256,13 +358,13 @@ const AilyAssistantPage = () => {
   }, [clearTimer]);
 
   const pushWithNotice = useCallback(
-    (entry: ChatEntry): void => {
+    (entry: ChatEntry | null): void => {
       clearTimer();
-      setEntries((prev) => [...prev, entry]);
+      if (entry) setEntries((prev) => [...prev, entry]);
       timerRef.current = window.setTimeout((): void => {
         timerRef.current = null;
         setEntries((prev) => [...prev, { id: nextId(), kind: "notice" }]);
-      }, NOTICE_DELAY_MS);
+      }, entry ? NOTICE_DELAY_MS : 0);
     },
     [clearTimer],
   );
@@ -279,6 +381,10 @@ const AilyAssistantPage = () => {
 
   const attach = useCallback((): void => {
     pushWithNotice({ id: nextId(), kind: "upload" });
+  }, [pushWithNotice]);
+
+  const unavailable = useCallback((): void => {
+    pushWithNotice(null);
   }, [pushWithNotice]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
@@ -309,23 +415,9 @@ const AilyAssistantPage = () => {
           {/* Panel header */}
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3">
             <p className="text-sm font-medium text-foreground">{PANEL_TITLE}</p>
-            <div className="flex items-center gap-3">
-              <span
-                className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:inline-flex"
-                title={`${NOT_AVAILABLE_LABEL} · the production panel connected to a Feishu Aily agent`}
-              >
-                <span className="size-2 rounded-full bg-muted-foreground/40" aria-hidden="true" />
-                Demo mode · AI disconnected
-              </span>
-              <button
-                type="button"
-                onClick={reset}
-                aria-label="重新開始"
-                className="inline-flex size-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-              >
-                <RefreshCw className="size-3.5" />
-              </button>
-            </div>
+            <IconButton label="重新開始" onClick={reset}>
+              <RefreshCw className="size-3.5" />
+            </IconButton>
           </div>
 
           {/* Messages */}
@@ -335,7 +427,11 @@ const AilyAssistantPage = () => {
                 {EXAMPLE_LABEL}
               </p>
               <UploadBubble name={EXAMPLE_UPLOAD_NAME} />
-              <ExampleReply rows={rows} onOpenWorkbench={openWorkbench} />
+              <ExampleReply
+                rows={rows}
+                onOpenWorkbench={openWorkbench}
+                onUnavailable={unavailable}
+              />
 
               {entries.map((entry: ChatEntry) => {
                 if (entry.kind === "user") {
@@ -350,11 +446,7 @@ const AilyAssistantPage = () => {
                 if (entry.kind === "upload") {
                   return <UploadBubble key={entry.id} name="（上傳檔案）" />;
                 }
-                return (
-                  <div key={entry.id} className="flex justify-start">
-                    <NoticeCard />
-                  </div>
-                );
+                return <NoticeCard key={entry.id} />;
               })}
             </div>
           </div>
@@ -384,9 +476,9 @@ const AilyAssistantPage = () => {
                 onClick={(): void => send(input)}
                 disabled={!canSend}
                 aria-label="發送"
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-sm text-primary transition-colors hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent"
+                className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
               >
-                <SendHorizontal className="size-4" />
+                <ArrowUp className="size-4" />
               </button>
             </div>
           </div>

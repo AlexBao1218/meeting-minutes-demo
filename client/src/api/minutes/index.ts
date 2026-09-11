@@ -127,5 +127,7 @@ export function saveBlobAsFile(blob: Blob, filename: string): void {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(url);
+  // Revoke after the click has been dispatched; some browsers abort the
+  // download if the object URL disappears synchronously.
+  window.setTimeout((): void => URL.revokeObjectURL(url), 1000);
 }

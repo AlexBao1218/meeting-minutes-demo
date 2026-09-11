@@ -28,4 +28,4 @@ export const RESULT_FOOTER = "複製下方 JSON，貼入「會議記錄工作台
 
 /** Body of the notice card that replaces a live answer in the public demo */
 export const NOTICE_TEXT =
-  "In production this panel was a Feishu Aily agent: upload the Cantonese meeting transcript and it returned the seven-section JSON shown above, flagging unclear lines as uncertain. The public demo reproduces the exchange but does not run the agent.";
+  "In production this panel was a Feishu Aily agent: upload the meeting transcript and it returned the seven-section JSON shown above, flagging unclear lines as uncertain. The public demo reproduces the exchange but does not run the agent.";
