@@ -45,7 +45,7 @@ const JsonInputSection = ({
         }
         placeholder="請貼上 Agent 產生的 JSON"
         rows={14}
-        className="min-h-[320px] resize-y font-mono text-sm leading-6"
+        className="h-[320px] max-h-[60vh] min-h-[200px] resize-y overflow-y-auto font-mono text-sm leading-6 [field-sizing:fixed]"
       />
       <div className="min-h-6 text-sm">
         {validation.status === "valid" && (
