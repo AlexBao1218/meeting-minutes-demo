@@ -129,7 +129,7 @@ const SAMPLE_TOKENS: Token[][] = SAMPLE_LINES.map(tokenize);
 function JsonBlock() {
   return (
     <div className="overflow-hidden rounded-sm border border-border bg-muted/40">
-      <div className="max-h-72 overflow-auto lg:max-h-[300px]">
+      <div className="max-h-[260px] overflow-auto">
         <pre className="min-w-max px-3 py-2.5 font-mono text-xs leading-5">
           {SAMPLE_TOKENS.map((tokens: Token[], index: number) => (
             <span key={index} className="flex gap-4">
@@ -277,25 +277,21 @@ function ExampleReply({
           )}
         </div>
 
-        {/* Summary and JSON side by side from lg so the whole reply fits without scrolling */}
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-6">
-          <div className="space-y-3">
-            <p className="text-sm leading-6 text-foreground">{RESULT_HEADING}</p>
-            <ol className="space-y-1 text-sm leading-6 text-foreground">
-              {rows.map((row: MinutesSectionPreviewRow, index: number) => (
-                <li key={row.no} className="flex gap-2">
-                  <span className="w-4 shrink-0 text-primary">{index + 1}.</span>
-                  <span>{summaryLine(row)}</span>
-                </li>
-              ))}
-              {rows.length === 0 && (
-                <li className="text-muted-foreground">正在載入章節結構…</li>
-              )}
-            </ol>
-            <p className="text-sm leading-6 text-foreground">{RESULT_FOOTER}</p>
-          </div>
-          <JsonBlock />
-        </div>
+        <p className="text-sm leading-6 text-foreground">{RESULT_HEADING}</p>
+        <ol className="space-y-1 text-sm leading-6 text-foreground">
+          {rows.map((row: MinutesSectionPreviewRow, index: number) => (
+            <li key={row.no} className="flex gap-2">
+              <span className="w-4 shrink-0 text-primary">{index + 1}.</span>
+              <span>{summaryLine(row)}</span>
+            </li>
+          ))}
+          {rows.length === 0 && (
+            <li className="text-muted-foreground">正在載入章節結構…</li>
+          )}
+        </ol>
+        <p className="text-sm leading-6 text-foreground">{RESULT_FOOTER}</p>
+
+        <JsonBlock />
 
         {/* Action row: regenerate / copy / feedback, as in the production panel */}
         <div className="flex flex-wrap items-center gap-1">
