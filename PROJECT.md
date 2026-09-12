@@ -18,7 +18,7 @@
 | 位置 | 地址 |
 |---|---|
 | 本地 | `~/Desktop/meeting-minutes-demo` |
-| GitHub | 还没推，见下面"发布" |
+| GitHub | https://github.com/AlexBao1218/meeting-minutes-demo（目前 **private**，确认没问题后再改 public） |
 | 线上 | 还没部署 |
 | 原始导出包 | `~/Downloads/meeting minutes.zip`（含真实母版、姓名、Aily appKey，**不要上传到任何地方**） |
 | 泄露扫描词表 | `~/Desktop/.leakscan/meeting-minutes.txt`（在仓库外，不要复制进来） |
@@ -44,10 +44,10 @@ cd ~/Desktop/meeting-minutes-demo && npm run typecheck && npm run lint && npm ru
 
 ### 发布
 
-先推 **private** 仓库，自己看一遍再切 public：
+仓库已推到 private。自己看一遍后切 public：
 
 ```bash
-cd ~/Desktop/meeting-minutes-demo && gh repo create meeting-minutes-demo --private --source=. --push
+gh repo edit AlexBao1218/meeting-minutes-demo --visibility public --accept-visibility-change-consequences
 ```
 
 部署到 Vercel（这台机器上 Vercel CLI 没登录）：
@@ -78,7 +78,7 @@ case study 里有几处 `[TO FILL]`（每次会议节省的时间、使用频率
 ### 还没做的事
 
 - 轮换 Aily appKey（你）
-- GitHub private 仓库 → 检查 → public
+- GitHub 仓库检查后切 public
 - Vercel 部署和子域名
 - zijun.cloud 项目页
 - README 截图
