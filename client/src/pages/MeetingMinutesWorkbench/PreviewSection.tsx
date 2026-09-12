@@ -17,14 +17,14 @@ const PreviewSection = ({
         2 · 預覽結構
       </h2>
       <div className="overflow-x-auto rounded-sm border border-border">
-        <table className="w-full min-w-[520px] border-collapse text-sm">
+        <table className="w-full min-w-[480px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/50 text-left">
-              <th className="px-4 py-2.5 font-medium">節次</th>
+              <th className="whitespace-nowrap px-4 py-2.5 font-medium">節次</th>
               <th className="px-4 py-2.5 font-medium">標題</th>
-              <th className="px-4 py-2.5 text-right font-medium">條目數</th>
-              <th className="px-4 py-2.5 font-medium">統計表</th>
-              <th className="px-4 py-2.5 font-medium">是否含待確認</th>
+              <th className="whitespace-nowrap px-4 py-2.5 text-right font-medium">條目數</th>
+              <th className="whitespace-nowrap px-4 py-2.5 font-medium">統計表</th>
+              <th className="whitespace-nowrap px-4 py-2.5 font-medium">是否含待確認</th>
             </tr>
           </thead>
           <tbody>

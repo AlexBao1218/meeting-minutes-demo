@@ -402,7 +402,7 @@ const AilyAssistantPage = () => {
   const canSend: boolean = input.trim().length > 0;
 
   return (
-    <div className="space-y-10">
+    <div className="mx-auto max-w-3xl space-y-10">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">{ASSISTANT_TITLE}</h1>
         <p className="text-sm leading-6 text-muted-foreground">

@@ -18,7 +18,7 @@ const Layout = () => {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 border-b border-border bg-background">
         <DemoBanner />
-        <nav className="mx-auto flex w-full max-w-3xl items-center gap-6 px-5 md:px-8">
+        <nav className="mx-auto flex w-full max-w-6xl items-center gap-6 px-5 md:px-8">
           {NAV_ITEMS.map((item: NavItem) => (
             <NavLink
               key={item.to}
@@ -37,7 +37,7 @@ const Layout = () => {
           ))}
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-3xl px-5 py-8 md:px-8 md:py-12">
+      <main className="mx-auto w-full max-w-6xl px-5 py-8 md:px-8 md:py-12">
         <Outlet />
       </main>
     </div>

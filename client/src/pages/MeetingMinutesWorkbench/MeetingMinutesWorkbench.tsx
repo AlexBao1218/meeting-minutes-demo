@@ -119,7 +119,7 @@ const MeetingMinutesWorkbench = () => {
   const previewRows: MinutesSectionPreviewRow[] = preview?.rows ?? [];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 md:space-y-10">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">
           會議記錄生成工作台
@@ -130,31 +130,47 @@ const MeetingMinutesWorkbench = () => {
         </p>
       </header>
 
-      <JsonInputSection
-        value={jsonText}
-        onChange={setJsonText}
-        validation={validation}
-        generating={generating}
-        onGenerate={(): void => void handleGenerate()}
-      />
+      {/* Two columns from lg: input stays put on the left, results flow on the right */}
+      <div className="space-y-10 xl:grid xl:grid-cols-[5fr_6fr] xl:items-start xl:gap-x-12 xl:space-y-0">
+        <div className="xl:sticky xl:top-24">
+          <JsonInputSection
+            value={jsonText}
+            onChange={setJsonText}
+            validation={validation}
+            generating={generating}
+            onGenerate={(): void => void handleGenerate()}
+          />
+        </div>
 
-      {validation.status === "valid" && validation.data && (
-        <PreviewSection
-          rows={previewRows}
-          unexpectedTitles={preview?.unexpectedTitles ?? []}
-          filename={MINUTES_PREVIEW_FILENAME}
-        />
-      )}
+        <div className="space-y-10">
+          {validation.status === "valid" && validation.data ? (
+            <PreviewSection
+              rows={previewRows}
+              unexpectedTitles={preview?.unexpectedTitles ?? []}
+              filename={MINUTES_PREVIEW_FILENAME}
+            />
+          ) : (
+            <section className="space-y-3">
+              <h2 className="text-sm font-semibold tracking-wide text-muted-foreground">
+                2 · 預覽結構
+              </h2>
+              <p className="rounded-sm border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+                貼上有效的 JSON 後，七節結構會在此預覽
+              </p>
+            </section>
+          )}
 
-      <DownloadSection
-        latestRecord={latestRecord}
-        records={records}
-        actionError={actionError}
-        downloadingId={downloadingId}
-        onDownload={(recordId: string): void => void handleDownload(recordId)}
-        clearing={clearing}
-        onClear={(): void => void handleClear()}
-      />
+          <DownloadSection
+            latestRecord={latestRecord}
+            records={records}
+            actionError={actionError}
+            downloadingId={downloadingId}
+            onDownload={(recordId: string): void => void handleDownload(recordId)}
+            clearing={clearing}
+            onClear={(): void => void handleClear()}
+          />
+        </div>
+      </div>
     </div>
   );
 };
