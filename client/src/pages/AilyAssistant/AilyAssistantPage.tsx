@@ -129,7 +129,7 @@ const SAMPLE_TOKENS: Token[][] = SAMPLE_LINES.map(tokenize);
 function JsonBlock() {
   return (
     <div className="overflow-hidden rounded-sm border border-border bg-muted/40">
-      <div className="max-h-72 overflow-auto">
+      <div className="max-h-72 overflow-auto lg:max-h-[300px]">
         <pre className="min-w-max px-3 py-2.5 font-mono text-xs leading-5">
           {SAMPLE_TOKENS.map((tokens: Token[], index: number) => (
             <span key={index} className="flex gap-4">
@@ -277,21 +277,25 @@ function ExampleReply({
           )}
         </div>
 
-        <p className="text-sm leading-6 text-foreground">{RESULT_HEADING}</p>
-        <ol className="space-y-1 text-sm leading-6 text-foreground">
-          {rows.map((row: MinutesSectionPreviewRow, index: number) => (
-            <li key={row.no} className="flex gap-2">
-              <span className="w-4 shrink-0 text-primary">{index + 1}.</span>
-              <span>{summaryLine(row)}</span>
-            </li>
-          ))}
-          {rows.length === 0 && (
-            <li className="text-muted-foreground">正在載入章節結構…</li>
-          )}
-        </ol>
-        <p className="text-sm leading-6 text-foreground">{RESULT_FOOTER}</p>
-
-        <JsonBlock />
+        {/* Summary and JSON side by side from lg so the whole reply fits without scrolling */}
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-6">
+          <div className="space-y-3">
+            <p className="text-sm leading-6 text-foreground">{RESULT_HEADING}</p>
+            <ol className="space-y-1 text-sm leading-6 text-foreground">
+              {rows.map((row: MinutesSectionPreviewRow, index: number) => (
+                <li key={row.no} className="flex gap-2">
+                  <span className="w-4 shrink-0 text-primary">{index + 1}.</span>
+                  <span>{summaryLine(row)}</span>
+                </li>
+              ))}
+              {rows.length === 0 && (
+                <li className="text-muted-foreground">正在載入章節結構…</li>
+              )}
+            </ol>
+            <p className="text-sm leading-6 text-foreground">{RESULT_FOOTER}</p>
+          </div>
+          <JsonBlock />
+        </div>
 
         {/* Action row: regenerate / copy / feedback, as in the production panel */}
         <div className="flex flex-wrap items-center gap-1">
@@ -402,7 +406,7 @@ const AilyAssistantPage = () => {
   const canSend: boolean = input.trim().length > 0;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-10">
+    <div className="mx-auto max-w-5xl space-y-10">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">{ASSISTANT_TITLE}</h1>
         <p className="text-sm leading-6 text-muted-foreground">
@@ -411,7 +415,7 @@ const AilyAssistantPage = () => {
       </header>
 
       <section className="space-y-3">
-        <div className="flex h-[640px] flex-col overflow-hidden rounded-sm border border-border bg-card">
+        <div className="flex h-[calc(100vh-15rem)] min-h-[560px] flex-col overflow-hidden rounded-sm border border-border bg-card">
           {/* Panel header */}
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3">
             <p className="text-sm font-medium text-foreground">{PANEL_TITLE}</p>

@@ -131,8 +131,8 @@ const MeetingMinutesWorkbench = () => {
       </header>
 
       {/* Two columns from lg: input stays put on the left, results flow on the right */}
-      <div className="space-y-10 xl:grid xl:grid-cols-[5fr_6fr] xl:items-start xl:gap-x-12 xl:space-y-0">
-        <div className="xl:sticky xl:top-24">
+      <div className="space-y-10 xl:grid xl:grid-cols-[5fr_6fr] xl:items-stretch xl:gap-x-12 xl:space-y-0">
+        <div className="xl:flex xl:min-h-0 xl:flex-col">
           <JsonInputSection
             value={jsonText}
             onChange={setJsonText}
@@ -142,7 +142,7 @@ const MeetingMinutesWorkbench = () => {
           />
         </div>
 
-        <div className="space-y-10">
+        <div className="flex flex-col gap-10">
           {validation.status === "valid" && validation.data ? (
             <PreviewSection
               rows={previewRows}
@@ -150,11 +150,11 @@ const MeetingMinutesWorkbench = () => {
               filename={MINUTES_PREVIEW_FILENAME}
             />
           ) : (
-            <section className="space-y-3">
+            <section className="flex flex-1 flex-col gap-3">
               <h2 className="text-sm font-semibold tracking-wide text-muted-foreground">
                 2 · 預覽結構
               </h2>
-              <p className="rounded-sm border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+              <p className="flex flex-1 items-center justify-center rounded-sm border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
                 貼上有效的 JSON 後，七節結構會在此預覽
               </p>
             </section>

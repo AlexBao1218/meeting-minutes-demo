@@ -23,7 +23,7 @@ const JsonInputSection = ({
     validation.status === "valid" && !generating;
 
   return (
-    <section className="space-y-3">
+    <section className="flex flex-col gap-3 xl:h-full">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold tracking-wide text-muted-foreground">
           1 · 貼上 JSON
@@ -45,7 +45,7 @@ const JsonInputSection = ({
         }
         placeholder="請貼上 Agent 產生的 JSON"
         rows={14}
-        className="h-[320px] max-h-[70vh] min-h-[200px] resize-y overflow-y-auto font-mono text-sm leading-6 [field-sizing:fixed] xl:h-[560px]"
+        className="h-[320px] max-h-[70vh] min-h-[200px] resize-y overflow-y-auto font-mono text-sm leading-6 [field-sizing:fixed]! xl:h-auto xl:max-h-none xl:min-h-[420px] xl:flex-1 xl:resize-none"
       />
       <div className="min-h-6 text-sm">
         {validation.status === "valid" && (
@@ -64,6 +64,7 @@ const JsonInputSection = ({
       </div>
       <Button
         size="lg"
+        className="self-start"
         disabled={!canGenerate}
         onClick={onGenerate}
       >
