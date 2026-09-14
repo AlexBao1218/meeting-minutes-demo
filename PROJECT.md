@@ -119,7 +119,8 @@ client/src/
                           once, dynamic-imports the builder, keeps 5 records in memory
   data/sample-minutes.ts  the "載入示例 JSON" payload (generic, hand-written)
   data/ai.ts              assistant copy (panel title, agent steps, result headings, notice)
-  components/Layout.tsx   two-tab nav + DemoBanner
+  components/Layout.tsx   two-tab nav + persistent disclosure footer (no top banner:
+                          the app is embedded in an iframe on zijun.cloud)
   pages/AilyAssistant     replica of the embedded Aily panel; 「帶到工作台」 passes the sample
                           JSON to /workbench via router state
   pages/MeetingMinutesWorkbench
